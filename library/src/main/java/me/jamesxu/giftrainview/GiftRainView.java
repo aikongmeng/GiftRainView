@@ -1,5 +1,5 @@
 package me.jamesxu.giftrainview;
-
+// package com.akm.money; 
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.res.TypedArray;
@@ -11,10 +11,11 @@ import android.util.AttributeSet;
 import android.util.SparseArray;
 import android.view.View;
 
+import java.io.InputStream;
 import java.util.ArrayList;
 
 /**
- * Created by james on 14/12/15.
+ * Created by toge on 15/12/26.
  */
 public class GiftRainView extends View {
 
@@ -34,6 +35,14 @@ public class GiftRainView extends View {
     public static SparseArray<Bitmap> bitmapArray = new SparseArray<>();
 
     private boolean isDelyStop;
+
+    public void setIsDelyStop(boolean isDelyStop) {
+        this.isDelyStop = isDelyStop;
+    }
+
+    public  boolean getIsDelyStop(){
+        return isDelyStop;
+    }
 
     public GiftRainView(Context context) {
         super(context, null);
@@ -102,8 +111,12 @@ public class GiftRainView extends View {
             return;
         int leftCount = Math.abs(quantity - giftList.size());
         for (int i = 0; i < leftCount; ++i) {
-            Bitmap originalBitmap = BitmapFactory
-                    .decodeResource(getResources(), imgs[i % imgs.length]);
+
+            InputStream is = this.getResources().openRawResource(imgs[i % imgs.length]);
+            BitmapFactory.Options options=new BitmapFactory.Options();
+            options.inJustDecodeBounds = false;
+            options.inSampleSize = 4;
+            Bitmap originalBitmap = BitmapFactory.decodeStream(is,null,options);
             Gift gift = new Gift(getWidth(), originalBitmap, speed);
             gift.bitmap = bitmapArray.get(gift.width);
             if (gift.bitmap == null) {
@@ -112,6 +125,11 @@ public class GiftRainView extends View {
                 bitmapArray.put(gift.width, gift.bitmap);
             }
             giftList.add(gift);
+
+            if(!originalBitmap.isRecycled() ) {
+                originalBitmap.recycle();   //回收图片所占的内存
+                System.gc();
+            }
         }
     }
 
@@ -122,6 +140,7 @@ public class GiftRainView extends View {
     public void stopRainDely() {
         this.isDelyStop = true;
     }
+
 
     /**
      * 立刻马上情况画布中所有的东西
